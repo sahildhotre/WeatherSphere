@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <meta name="theme-color" content="#ffb347"/>
+  <link rel="manifest" href="manifest.json">
+  
+  <title>WeatherSphere - Advanced Dashboard</title>
+  
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+  
+  <link rel="stylesheet" href="style.css">
+</head>
+<body class="">
+  
+  <!-- Animated background clouds -->
+  <div class="cloud cloud1"></div>
+  <div class="cloud cloud2"></div>
+  <div class="cloud cloud3"></div>
+
+  <!-- Navigation Bar -->
+  <nav>
+    <div class="logo">Weather<span class="highlight">Sphere</span></div>
+    <ul>
+      <li><a href="#home">Home</a></li>
+      <li><a href="#dashboard">Dashboard</a></li>
+      <li><a href="#contactSection">Contact</a></li>
+      <li class="favorites-dropdown">
+        <button id="favoritesBtn" aria-label="Favorite Cities"><i class="fas fa-star"></i></button>
+        <ul id="favoritesList">
+          <li id="noFavoritesMsg">No favorites yet.</li>
+        </ul>
+      </li>
+      <li class="nav-settings">
+          <button id="unitToggleBtn" aria-label="Toggle temperature unit">°C</button>
+          <button id="themeToggleBtn" aria-label="Toggle theme"><i class="fas fa-moon"></i></button>
+      </li>
+    </ul>
+  </nav>
+
+  <!-- Main content container -->
+  <div class="container" id="home">
+    <section id="dashboard" class="weather-dashboard">
+        <!-- Search and location controls -->
+        <div class="controls-container">
+            <div class="search-input-wrapper">
+                <input type="text" id="cityInput" placeholder="Enter a new location..." autocomplete="off">
+                <div id="autocomplete-list"></div>
+                <div id="searchHistoryList"></div>
+            </div>
+            <button id="searchBtn" class="control-button"><i class="fas fa-search"></i> Search</button>
+            <button id="locationBtn" class="control-button"><i class="fas fa-map-marker-alt"></i> My Location</button>
+        </div>
+
+        <!-- Skeleton Loader (Initially hidden, shown by JS during fetch) -->
+        <div id="skeletonLoader" class="hidden">
+            <div class="glass-card skeleton-card">
+                <div class="skeleton-box skeleton-title"></div>
+                <div class="skeleton-box skeleton-subtitle"></div>
+                <div class="skeleton-main-info">
+                    <div class="skeleton-box skeleton-icon-large"></div>
+                    <div class="skeleton-box skeleton-temp-large"></div>
+                    <div class="skeleton-box skeleton-condition"></div>
+                </div>
+                <div class="weather-details-grid">
+                    <div class="skeleton-box skeleton-detail-card"></div>
+                    <div class="skeleton-box skeleton-detail-card"></div>
+                    <div class="skeleton-box skeleton-detail-card"></div>
+                    <div class="skeleton-box skeleton-detail-card"></div>
+                    <div class="skeleton-box skeleton-detail-card"></div>
+                    <div class="skeleton-box skeleton-detail-card"></div>
+                    <div class="skeleton-box skeleton-detail-card"></div>
+                </div>
+            </div>
+            <div class="glass-card skeleton-card">
+                <div class="skeleton-tabs">
+                    <div class="skeleton-box skeleton-tab"></div>
+                    <div class="skeleton-box skeleton-tab"></div>
+                </div>
+                <div class="skeleton-box skeleton-chart"></div>
+            </div>
+        </div>
+        
+        <!-- Container for weather alerts, hidden by default -->
+        <div id="alertsContainer" class="hidden"></div>
+        <!-- Container for displaying errors, hidden by default -->
+        <div id="errorDisplay" class="glass-card hidden"></div>
+
+        <!-- Card for displaying current weather conditions -->
+        <div id="currentWeatherCard" class="glass-card current-weather-container hidden"> 
+            <div class="location-header">
+              <h2 id="cityName">--</h2>
+              <button id="toggleFavoriteBtn" aria-label="Add to favorites"><i class="far fa-star"></i></button>
+            </div>
+            <p id="currentDate">--</p>
+            <div class="main-weather-info">
+              <img id="currentWeatherIcon" src="https://cdn.weatherapi.com/weather/64x64/day/113.png" alt="Weather Icon" class="weather-icon-large">
+              <div class="temp-display"><span id="currentTemp">--</span><span id="tempUnitDisplay">°C</span></div>
+              <p id="currentCondition" class="condition-text">--</p>
+            </div>
+            <!-- Grid for primary weather details -->
+            <div class="weather-details-grid">
+                <div class="detail-card"><i class="fas fa-tint"></i><h4>Humidity</h4><p id="currentHumidity">--%</p></div>
+                <div class="detail-card"><i class="fas fa-wind"></i><h4>Wind</h4><p id="currentWind">-- kph</p></div>
+                <div class="detail-card"><i class="fas fa-thermometer-half"></i><h4>Feels Like</h4><p id="currentFeelsLike">--<span class="detailTempUnitDisplay">°C</span></p></div>
+                <div class="detail-card"><i class="fas fa-compress-arrows-alt"></i><h4>Pressure</h4><p id="currentPressure">-- mb</p></div>
+                <div class="detail-card"><i class="fas fa-sun"></i><h4>Sunrise</h4><p id="sunriseTime">--</p></div>
+                <div class="detail-card"><i class="fas fa-moon"></i><h4>Sunset</h4><p id="sunsetTime">--</p></div>
+                <div class="detail-card"><i class="fas fa-smog"></i><h4>AQI (US EPA)</h4><p id="currentAQI">--</p></div>
+            </div>
+            
+            <!-- Button to trigger the slide-up details drawer -->
+            <button id="openDetailsDrawerBtn" class="details-drawer-trigger">
+                <span>View All Details</span>
+                <i class="fas fa-chevron-up"></i>
+            </button>
+        </div>
+
+        <div class="tabs-container glass-card hidden" id="forecastContainer" style="padding-bottom: 0.5rem;">
+            <!-- Tabs to switch between hourly and daily forecasts -->
+            <div class="tabs">
+                <button class="tab-btn active" data-tab="hourlyTabContent">48-Hour Forecast</button>
+                <button class="tab-btn" data-tab="forecastTabContent">3-Day Forecast</button>
+            </div>
+            
+            <!-- Content for the 48-hour forecast tab -->
+            <div id="hourlyTabContent" class="tab-content active">
+                <div class="chart-container">
+                    <canvas id="hourlyChart"></canvas>
+                </div>
+                <div class="hourly-scroll-wrapper">
+                    <button class="scroll-arrow left-arrow" id="hourlyScrollLeftBtn" aria-label="Scroll left"><i class="fas fa-chevron-left"></i></button>
+                    <div class="hourly-forecast-scroll" id="hourlyDetails">
+                        <!-- Hourly details will be injected here by JS -->
+                    </div>
+                    <button class="scroll-arrow right-arrow" id="hourlyScrollRightBtn" aria-label="Scroll right"><i class="fas fa-chevron-right"></i></button>
+                </div>
+            </div>
+
+            <!-- Content for the 3-day forecast tab -->
+            <div id="forecastTabContent" class="tab-content">
+                <div class="forecast-grid" id="forecastSlider">
+                    <!-- Forecast day items will be injected here by JS -->
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Contact Form Section -->
+    <section id="contactSection" class="glass-card">
+      <h2>Contact Us</h2>
+      <form id="contactForm">
+        <input type="text" id="nameInput" placeholder="Your Name" required>
+        <input type="email" id="emailInput" placeholder="Your Email" required>
+        <textarea id="messageInput" placeholder="Your Message..." rows="4" required></textarea>
+        <div class="captcha-line">
+            <span>Solve: <span id="captchaQ"></span> = </span>
+            <input type="text" id="captchaA" required>
+            <button type="button" id="refreshCaptcha" aria-label="Refresh CAPTCHA"><i class="fas fa-sync-alt"></i></button>
+        </div>
+        <button type="submit" class="control-button" style="width:100%;">Send Message</button>
+        <div id="formMsg"></div>
+      </form>
+    </section>
+
+    <!-- Embedded Google Map Section -->
+    <section id="locationMap" class="glass-card">
+      <h2>Our Fictional HQ</h2>
+      <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d2990.274257380938!2d-70.56068388481569!3d41.45496659976634!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x89e52963ac45bbcb%3A0xf05e8d125e82af10!2sNantucket%20Memorial%20Airport!5e0!3m2!1sen!2sus!4v1623970284700!5m2!1sen!2sus" width="100%" height="350" style="border:0; border-radius: var(--border-radius-small);" allowfullscreen="" loading="lazy"></iframe>
+    </section>
+
+  </div>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <p>© 2024 WeatherSphere. Futuristic weather at your fingertips.</p>
+    <p>Powered by <a href="https://www.weatherapi.com/" title="Free Weather API" target="_blank" rel="noopener">WeatherAPI.com</a></p>
+  </footer>
+
+  <!-- Modal for displaying detailed 3-day forecast information -->
+  <div class="modal" id="forecastModal">
+    <div class="modal-content">
+      <span class="modal-close" id="modalCloseBtn"><i class="fas fa-times"></i></span>
+      <div id="modalBody"></div>
+    </div>
+  </div>
+
+  <!-- Slide-up drawer for displaying all weather details -->
+  <div class="drawer-overlay" id="detailsDrawerOverlay"></div>
+  <div class="details-drawer" id="detailsDrawer">
+      <div class="drawer-header">
+          <div class="drawer-handle"></div>
+          <button id="closeDetailsDrawerBtn" class="drawer-close"><i class="fas fa-times"></i></button>
+      </div>
+      <div class="drawer-content" id="additionalDetailsContent">
+          <!-- Content will be injected by JS -->
+      </div>
+  </div>
+
+  <!-- Scroll to Top Button -->
+  <button id="scrollToTopBtn" title="Go to top"><i class="fas fa-arrow-up"></i></button>
+
+  <!-- JavaScript Libraries -->
+  <script src="config.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+  <!-- Main application script -->
+  <script src="script.js"></script>
+</body>
+</html>
